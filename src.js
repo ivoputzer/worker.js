@@ -46,7 +46,7 @@ else {
   Object.defineProperty(window, 'Worker', {writable: true})
   window.Worker = function Worker (url) {
     var signal = new MessageChannel
-      , worker = new NativeWorker(script.src + '#' + url)
+      , worker = new NativeWorker(script.src + '#' + url.replace(/^\/*/g, '/'))
     worker.postMessage(url, [signal.port2])
     signal.port1.onmessage = function (e) {
       console[e.data[0]].apply(console, e.data[1])
