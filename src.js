@@ -1,26 +1,40 @@
 // this section runs within a worker later on
 if (typeof WorkerGlobalScope !== 'undefined' && this instanceof WorkerGlobalScope) {
   onmessage = function(e) {
-    self.console = {
-      log: function () {
-        e.ports[0].postMessage(['log', Array.prototype.slice.call(arguments)])
-      },
-      warn: function () {
-        e.ports[0].postMessage(['warn', Array.prototype.slice.call(arguments)])
-      },
-      error: function () {
-        e.ports[0].postMessage(['error', Array.prototype.slice.call(arguments)])
-      },
-      info: function () {
-        e.ports[0].postMessage(['info', Array.prototype.slice.call(arguments)])
-      },
-      count: function () {
-        e.ports[0].postMessage(['count', Array.prototype.slice.call(arguments)])
-      },
-      debug: function (){
-        e.ports[0].postMessage(['debug', Array.prototype.slice.call(arguments)])
-      }
-    }
+    self.console = (function(){
+      [
+        'assert',
+        'clear',
+        'count',
+        'debug',
+        'dir',
+        'dirxml',
+        'error',
+        'exception',
+        'group',
+        'groupCollapsed',
+        'groupEnd',
+        'info',
+        'log',
+        'markTimeline',
+        'profile',
+        'profileEnd',
+        'table',
+        'time',
+        'timeEnd',
+        'timeStamp',
+        'trace',
+        'warn'
+      ]
+      .forEach(function(m){
+        this[m] = function () {
+          var args = Array.prototype.slice.call(arguments)
+            , info = (new Error).stack.split('\n')[2].match(/https?:\/\/.*$/i)
+          e.ports[0].postMessage([m, args.concat(info)])
+        }
+      }.bind(this))
+      return this
+    })()
     onmessage = null
     importScripts.call(this, location.hash.substring(1))
   }
@@ -29,10 +43,8 @@ if (typeof WorkerGlobalScope !== 'undefined' && this instanceof WorkerGlobalScop
 // this section runs on the main thread
 else {
   var script = document.scripts[document.scripts.length -1]
-
   window.NativeWorker = Worker
   Object.defineProperty(window, 'Worker', {writable: true})
-
   window.Worker = function Worker (url) {
     var signal = new MessageChannel
       , worker = new NativeWorker(script.src + '#' + url)
