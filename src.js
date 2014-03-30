@@ -29,8 +29,7 @@ if (typeof WorkerGlobalScope !== 'undefined' && this instanceof WorkerGlobalScop
       .forEach(function(m){
         this[m] = function () {
           var args = Array.prototype.slice.call(arguments)
-            , info = (new Error).stack.split('\n')[2].match(/https?:\/\/.*$/i)
-          e.ports[0].postMessage([m, args.concat(info)])
+          e.ports[0].postMessage([m, args])
         }
       }.bind(this))
       return this
